@@ -1,9 +1,43 @@
-import React from 'react';
-import { DemoBox, Row, Col, Form, Icon, Input, Button, Checkbox } from 'antd';
+import React, {useState} from 'react';
+import { Row, Col, Form, Icon, Input, Button, message } from 'antd';
 import './SigninForm.css';
+import axios from 'axios';
+import {withRouter} from 'react-router-dom';
 
 
-export default function SigninForm() {
+function SigninForm({history}) {
+  const _password = React.createRef();
+  const _email = React.createRef();
+  const [isLoding , setIsLoading] = useState(false);
+
+  async function click() {
+      const email = _email.current.input.value;
+      const password = _password.current.input.value;
+
+      try {
+        setIsLoading(true);
+
+        const res = await axios
+        .post('https://api.marktube.tv/v1/me', {
+          email,
+          password,
+        });
+        console.log(res.data.token);
+        localStorage.setItem('token', res.data.token);
+        history.push("/");
+
+      } catch (error) {
+        console.log(error);
+        setIsLoading(false);
+        // error feedback
+        message.error("계정이 일치하지 않습니다." + error.response.data.error);
+        
+
+      }
+      
+
+  }
+  
   return (
     <Col span={12}>
           <Form id="components-form-demo-normal-login">
@@ -22,6 +56,7 @@ export default function SigninForm() {
                 <Input
                     prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
                     placeholder="Email"
+                    ref={_email}
                 />
                 </Form.Item>
                 <Form.Item label="Password">
@@ -29,10 +64,11 @@ export default function SigninForm() {
                     prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
                     type="password"
                     placeholder="Password"
+                    ref={_password}
                   />
                 </Form.Item>
                 <Form.Item>
-                  <Button type="primary" htmlType="submit" className="login-form-button">
+                  <Button type="primary" onClick={click} loading={isLoding} className="login-form-button">
                     SIGN IN
                   </Button>
                 </Form.Item>
@@ -75,3 +111,5 @@ export default function SigninForm() {
         
   );
 }
+
+export default withRouter(SigninForm);
